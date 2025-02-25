@@ -1,0 +1,66 @@
+#! /bin/bash
+
+#####
+# Script to make predictions with a chrombpnet model
+# USAGE: sbatch \
+--job-name=predictions \
+--account carter-gpu \
+--partition carter-gpu \
+--gpus=a30:1 \
+--output slurm_logs/%x.%A.%a.out \
+--mem=128G \
+-n 4 \
+-t 02-00:00:00 \
+--array=1-12%12 \
+predictions.sh
+#####
+
+date
+echo -e "Job ID: $SLURM_JOB_ID\\n"
+
+# Set-up env
+source activate chrombpnet
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/cellar/users/aklie/opt/miniconda3/envs/chrombpnet/lib
+python -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
+
+# file lists
+{}
+{}
+{}
+{}
+{}
+{}
+
+# Grab each for this SLURM task
+celltype=${{celltypes[$SLURM_ARRAY_TASK_ID - 1]}}
+peak=${{peaks[$SLURM_ARRAY_TASK_ID - 1]}}
+bias_model=${{bias_models[$SLURM_ARRAY_TASK_ID - 1]}}
+chrombpnet_model=${{chrombpnet_models[$SLURM_ARRAY_TASK_ID - 1]}}
+chrombpnet_nobias_model=${{chrombpnet_nobias_models[$SLURM_ARRAY_TASK_ID - 1]}}
+output_dir=${{output_dirs[$SLURM_ARRAY_TASK_ID - 1]}}
+
+# echo the celltype and peak
+echo -e "Celltype: $celltype"
+echo -e "Peakset: $peak"
+echo -e "Bias model: $bias_model"
+echo -e "Chrombpnet model: $chrombpnet_model"
+echo -e "Chrombpnet nobias model: $chrombpnet_nobias_model"
+echo -e "Output directory: $output_dir\\n"
+
+# make the output directory
+mkdir -p $output_dir
+
+# Run cmd
+cmd="chrombpnet pred_bw \
+-bm $bias_model \
+-cm $chrombpnet_model \
+-cmb $chrombpnet_nobias_model \
+-g {} \
+-c {} \
+-r $peak \
+-o $output_dir/$celltype"
+echo -e "Running command:\\n$cmd\\n"
+eval $cmd
+
+# Date
+date

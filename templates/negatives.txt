@@ -1,0 +1,56 @@
+#! /bin/bash
+
+#####
+# Script to run chrombpnet negatives command across multiple peaksets as a SLURM array job
+# USAGE: sbatch \
+--job-name=negatives \
+--partition carter-compute \
+--output slurm_logs/%x.%A.%a.out \
+--mem=16G \
+-n 1 \
+-t 02-00:00:00 \
+--array=1-12%12 \
+negatives.sh
+#####
+
+date
+echo -e "Job ID: $SLURM_JOB_ID\\n"
+
+# Set-up env
+source activate chrombpnet
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/cellar/users/aklie/opt/miniconda3/envs/chrombpnet/lib
+
+# file lists
+{}
+{}
+{}
+{}
+
+# Grab each for this SLURM task
+celltype=${{celltypes[$SLURM_ARRAY_TASK_ID - 1]}}
+peak=${{peaks[$SLURM_ARRAY_TASK_ID - 1]}}
+fold=${{folds[$SLURM_ARRAY_TASK_ID - 1]}}
+output_dir=${{output_dirs[$SLURM_ARRAY_TASK_ID - 1]}}
+
+# echo the celltype and peak
+echo -e "Celltype: $celltype"
+echo -e "Peakset: $peak"
+echo -e "Fold: $fold"
+echo -e "Output directory: $output_dir\\n"
+
+# make the output directory
+mkdir -p $output_dir
+
+# Run cmd
+cmd="chrombpnet prep nonpeaks \
+-g {} \
+-c {} \
+-p $peak \
+-fl {}/fold_${{fold}}.json \
+-br {} \
+-o $output_dir/${{celltype}}"
+echo -e "Running command:\\n$cmd\\n"
+eval $cmd
+
+# Date
+date
