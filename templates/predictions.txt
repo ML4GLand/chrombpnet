@@ -58,7 +58,7 @@ cmd="chrombpnet pred_bw \
 -g {} \
 -c {} \
 -r $peak \
--o $output_dir/$celltype"
+-op $output_dir/$celltype"
 echo -e "Running command:\\n$cmd\\n"
 eval $cmd
 

@@ -3,18 +3,18 @@
 #####
 # Script to run chrombpnet negatives command across multiple peaksets as a SLURM array job
 # USAGE: sbatch \
---job-name=negatives \
---partition carter-compute \
---output slurm_logs/%x.%A.%a.out \
---mem=16G \
--n 1 \
--t 02-00:00:00 \
---array=1-12%12 \
-negatives.sh
+#--job-name=negatives \
+#--partition carter-compute \
+#--output slurm_logs/%x.%A.%a.out \
+#--mem=16G \
+#-n 1 \
+#-t 02-00:00:00 \
+#--array=1-12%12 \
+#negatives.sh
 #####
 
 date
-echo -e "Job ID: $SLURM_JOB_ID\\n"
+echo -e "Job ID: $SLURM_JOB_ID\n"
 
 # Set-up env
 source activate chrombpnet
@@ -36,7 +36,7 @@ output_dir=${{output_dirs[$SLURM_ARRAY_TASK_ID - 1]}}
 echo -e "Celltype: $celltype"
 echo -e "Peakset: $peak"
 echo -e "Fold: $fold"
-echo -e "Output directory: $output_dir\\n"
+echo -e "Output directory: $output_dir\n"
 
 # make the output directory
 mkdir -p $output_dir
@@ -49,7 +49,7 @@ cmd="chrombpnet prep nonpeaks \
 -fl {}/fold_${{fold}}.json \
 -br {} \
 -o $output_dir/${{celltype}}"
-echo -e "Running command:\\n$cmd\\n"
+echo -e "Running command:\n$cmd\n"
 eval $cmd
 
 # Date

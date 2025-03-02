@@ -3,20 +3,20 @@
 #####
 # Script to run chrombpnet model pipeline across multiple fragment files as a SLURM array job
 # USAGE: sbatch \
---job-name=chrombpnet_pipeline \
---account carter-gpu \
---partition carter-gpu \
---gpus=a30:1 \
---output slurm_logs/%x.%A.%a.out \
---mem=128G \
--n 4 \
--t 02-00:00:00 \
---array=1-12%12 \
-chrombpnet_pipeline.sh
+#--job-name=chrombpnet_pipeline \
+#--account carter-gpu \
+#--partition carter-gpu \
+#--gpus=a30:1 \
+#--output slurm_logs/%x.%A.%a.out \
+#--mem=128G \
+#-n 4 \
+#-t 02-00:00:00 \
+#--array=1-12%12 \
+#chrombpnet_pipeline.sh
 #####
 
 date
-echo -e "Job ID: $SLURM_JOB_ID\\n"
+echo -e "Job ID: $SLURM_JOB_ID\n"
 
 # Set-up env
 source activate chrombpnet
@@ -49,7 +49,7 @@ echo -e "Peakset: $peak"
 echo -e "Fold: $fold"
 echo -e "Negatives: $negative"
 echo -e "Bias model: $bias_model"
-echo -e "Output directory: $output_dir\\n"
+echo -e "Output directory: $output_dir\n"
 
 # make the output directory
 mkdir -p $output_dir
@@ -65,7 +65,7 @@ cmd="chrombpnet pipeline \
 -fl {}/fold_${{fold}}.json \
 -b $bias_model \
 -o $output_dir"
-echo -e "Running command:\\n$cmd\\n"
+echo -e "Running command:\n$cmd\n"
 eval $cmd
 
 # Date

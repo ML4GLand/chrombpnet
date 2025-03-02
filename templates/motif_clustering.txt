@@ -1,0 +1,75 @@
+#! /bin/bash
+
+#####
+# Script to run motif clustering on de novo motifs
+# USAGE: sbatch \
+--job-name=motif_clustering \
+--partition=carter-compute \
+--output=slurm_logs/%x.%A.out \
+--mem=128G \
+-n 4 \
+-t 02-00:00:00 \
+motif_clustering.sh
+#####
+
+date
+echo -e "Job ID: $SLURM_JOB_ID\\n"
+
+# Configure environment
+source activate test_celloracle
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/opt/miniconda3/envs/test_celloracle/lib/
+
+# Define input files
+{}
+path_out={}
+
+# Make the directory
+mkdir -p $path_out/cluster
+mkdir -p $path_out/meme
+mkdir -p $path_out/tomtom
+
+cat ${{paths_pfm[@]}} > $path_out/input_motifs.pfm
+
+# Run cluster
+cmd="gimme cluster \
+$path_out/input_motifs.pfm \
+$path_out/cluster \
+-t 0.999"
+echo -e "Running command:\\n$cmd\\n"
+eval $cmd
+
+# Run conversion to meme
+path_meme_script={}
+cmd="python $path_meme_script \
+-i $path_out/cluster/clustered_motifs.pfm \
+-o $path_out/meme"
+echo -e "Running command:\\n$cmd\\n"
+eval $cmd
+
+# Run TomTom for motif annotation
+path_motif_database={}
+base_path=$path_out/meme
+meme_files=($(find $base_path -name "*.meme" | sort))
+for meme_file in "${{meme_files[@]}}"; do
+  meme_id=$(basename $meme_file .meme)
+  cmd="tomtom \
+-no-ssc \
+-oc $path_out/tomtom/$meme_id \
+-verbosity 1 \
+-text \
+-min-overlap 5 \
+-mi 1 \
+-dist pearson \
+-evalue \
+-thresh 10.0 \
+$meme_file \
+$path_motif_database > $path_out/tomtom/${{meme_id}}.tomtom.txt"
+  echo -e "Running command:\\n$cmd\\n"
+  eval $cmd
+done
+
+#
+for x in $(ls $path_out/tomtom/) ; do cat $x | head -2 | tail -1 ; done | cut -f1,2,5|  sort -k3g | head -36 | cut -f2 > $path_out/tfs_initial.txt
+
+# Completion message
+date

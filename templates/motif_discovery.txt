@@ -1,0 +1,82 @@
+#! /bin/bash
+
+#####
+# Script to run de novo motif discovery on contributions
+# USAGE: sbatch \
+--job-name=motif_discovery \
+--partition=carter-compute \
+--output=slurm_logs/%x.%A.%a.out \
+--array=1-12%12 \
+--mem=128G \
+-n 4 \
+-t 02-00:00:00 \
+motif_discovery.sh
+#####
+
+date
+echo -e "Job ID: $SLURM_JOB_ID\\n"
+
+# Set up environment
+source activate eugene_tools
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/opt/miniconda3/lib/
+export LD_LIBRARY_PATH=/cm/shared/apps/slurm/current/lib64
+
+# Define input files
+{}
+{}
+{}
+{}
+n_seqlets={}
+leiden_res={}
+window={}
+
+# Make the fold the slurm task id - 1
+celltype=${{celltypes[$SLURM_ARRAY_TASK_ID - 1]}}
+input_h5=${{input_h5s[$SLURM_ARRAY_TASK_ID - 1]}}
+output_dir=${{output_dirs[$SLURM_ARRAY_TASK_ID - 1]}}
+type=${{types[$SLURM_ARRAY_TASK_ID - 1]}}
+
+# Create output directory
+mkdir -p $output_dir
+
+# Run motifs cmd
+cmd="modisco motifs \
+-i $input_h5 \
+-n $n_seqlets \
+-o $output_dir/${{celltype}}.${{type}}.modisco.h5 \
+-l $leiden_res \
+-w $window \
+-v"
+echo -e $cmd
+eval $cmd
+
+# Run report cmd
+cmd="modisco report \
+-i $output_dir/${{celltype}}.${{type}}.modisco.h5 \
+-o $output_dir/${{celltype}}.${{type}}.modisco.report/ \
+-s $output_dir/${{celltype}}.${{type}}.modisco.report/ \
+-m {}"
+echo -e $cmd
+eval $cmd
+
+# Run pfm generation script
+path_pfm_script={}
+cmd="python $path_pfm_script \
+-m $output_dir/${{celltype}}.${{type}}.modisco.h5 \
+-o $output_dir/pfms/$type \
+-op ${{celltype}}.${{type}} \
+-f 2"
+echo -e $cmd
+eval $cmd
+
+# Consolidate pfms
+(
+  for x in "$output_dir/pfms/$type"/${{celltype}}.${{type}}*.pfm
+  do
+    printf ">%s\\n" "$(basename "$x")"
+    cat "$x"
+  done
+) | sed "s/\//_/" > "$output_dir/pfms/$type/${{celltype}}.${{type}}.pfm"
+
+# Completion message
+date

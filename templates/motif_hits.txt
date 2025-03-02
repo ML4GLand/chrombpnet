@@ -1,0 +1,74 @@
+#! /bin/bash
+
+#####
+# Script to run motif hit calling
+# USAGE: sbatch \
+--job-name=motif_hits \
+--partition=carter-gpu \
+--account=carter-gpu \
+--gpus=a30:1 \
+--output=slurm_logs/%x.%A.%a.out \
+--mem=128G \
+-n 4 \
+-t 02-00:00:00 \
+--array=1-12%12 \
+motif_hits.sh
+#####
+
+date
+echo -e "Job ID: $SLURM_JOB_ID\\n"
+
+# Configure environment
+source activate finemo_gpu
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/opt/miniconda3/envs/finemo_gpu/lib/
+
+# Define input files
+{}
+{}
+{}
+{}
+{}
+{}
+window={}
+
+# Make the fold the slurm task id - 1
+celltype=${{celltypes[$SLURM_ARRAY_TASK_ID - 1]}}
+peak=${{peaks[$SLURM_ARRAY_TASK_ID - 1]}}
+input_h5=${{input_h5s[$SLURM_ARRAY_TASK_ID - 1]}}
+modisco=${{modiscos[$SLURM_ARRAY_TASK_ID - 1]}}
+type=${{types[$SLURM_ARRAY_TASK_ID - 1]}}
+output_dir=${{output_dirs[$SLURM_ARRAY_TASK_ID - 1]}}
+
+# Create output directory
+mkdir -p $output_dir
+
+# Run cmd to preprocess
+cmd="finemo extract-regions-chrombpnet-h5 \
+-c $input_h5 \
+-o $output_dir/${{celltype}}.${{type}}.finemo.npz \
+-w $window"
+echo -e "Running command:\\n$cmd\\n"
+eval $cmd
+
+# Run cmd to call hits
+cmd="finemo call-hits \
+-r $output_dir/${{celltype}}.${{type}}.finemo.npz \
+-m $modisco \
+-o $output_dir \
+-p $peak"
+echo -e "Running command:\\n$cmd\\n"
+eval $cmd
+
+# Run cmd for report
+cmd="finemo report \
+-r $output_dir/${{celltype}}.${{type}}.finemo.npz \
+-p $peak \
+-H $output_dir/hits.tsv \
+-m $modisco \
+-o $output_dir/report \
+-W $window"
+echo -e "Running command:\\n$cmd\\n"
+eval $cmd
+
+# Completion message
+date

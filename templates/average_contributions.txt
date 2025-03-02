@@ -1,0 +1,59 @@
+#! /bin/bash
+
+#####
+# Script to compute averaged contributions and profiles across folds
+# USAGE: sbatch \
+--job-name=avg_contributions \
+--account=carter-compute \
+--output=slurm_logs/%x.%A.out \
+--mem=128G \
+-n 4 \
+-t 02-00:00:00 \
+average_contributions.sh
+#####
+
+date
+echo -e "Job ID: $SLURM_JOB_ID\\n"
+
+# Set up environment
+source activate eugene_tools
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/cellar/users/aklie/opt/miniconda3/envs/eugene_tools/lib
+
+# Define input files
+celltype={}
+{}
+{}
+{}
+{}
+output_dir={}
+window={}
+
+# Create output directory
+mkdir -p $output_dir
+
+# Define paths
+wigToBigWig={}
+chromsizes={}
+path_script={}
+
+# Compute mean bigwig for counts
+cmd="wiggletools mean ${{counts[@]}} > ${{celltype}}_temp_counts.wig && $wigToBigWig ${{celltype}}_temp_counts.wig $chromsizes $output_dir/${{celltype}}_counts.bw && rm -f ${{celltype}}_temp_counts.wig"
+echo -e "Running command:\\n$cmd\\n"
+eval $cmd
+
+# Compute mean bigwig for profile
+cmd="wiggletools mean ${{profile[@]}} > ${{celltype}}_temp_profile.wig && $wigToBigWig ${{celltype}}_temp_profile.wig $chromsizes $output_dir/${{celltype}}_profile.bw && rm -f ${{celltype}}_temp_profile.wig"
+echo -e "Running command:\\n$cmd\\n"
+eval $cmd
+
+# Compute mean contributions in HDF5 format
+cmd="python $path_script --files ${{counts_h5[@]}} --output_file $output_dir/${{celltype}}_counts.h5 --window ${{window}}"
+echo -e "Running command:\\n$cmd\\n"
+eval $cmd
+
+cmd="python $path_script --files ${{profile_h5[@]}} --output_file $output_dir/${{celltype}}_profile.h5 --window ${{window}}"
+echo -e "Running command:\\n$cmd\\n"
+eval $cmd
+
+# Completion message
+date
