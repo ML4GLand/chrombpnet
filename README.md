@@ -25,3 +25,26 @@ cmd="./SLURM/chrombpnet_pipeline.sh \
 echo -e "Running command:\n$cmd"
 eval $cmd
 ```
+
+
+# Making predictions
+
+```bash
+cmd="./SLURM/predicitons.sh \
+-s scripts/predictions/HPAP_predictions.sh \
+-j HPAP_predictions \
+-p carter-gpu \
+-a carter-gpu \
+-g 1 \
+-c 4 \
+-m 80G \
+-t 14-00:00:00 \
+-o /cellar/users/aklie/data/datasets/HPAP/bin/slurm_logs/chrombpnet/predictions \
+-n 12 \
+-x 3"
+echo -e "Running command:\n$cmd"
+eval $cmd
+```
+
+
+

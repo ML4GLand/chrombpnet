@@ -20,6 +20,7 @@ echo -e "Job ID: $SLURM_JOB_ID\\n"
 source activate eugene_tools
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/opt/miniconda3/lib/
 export LD_LIBRARY_PATH=/cm/shared/apps/slurm/current/lib64
+NUMBA_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 # Define input files
 {}

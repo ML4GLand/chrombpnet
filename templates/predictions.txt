@@ -3,20 +3,20 @@
 #####
 # Script to make predictions with a chrombpnet model
 # USAGE: sbatch \
---job-name=predictions \
---account carter-gpu \
---partition carter-gpu \
---gpus=a30:1 \
---output slurm_logs/%x.%A.%a.out \
---mem=128G \
--n 4 \
--t 02-00:00:00 \
---array=1-12%12 \
-predictions.sh
+#--job-name=predictions \
+#--account carter-gpu \
+#--partition carter-gpu \
+#--gpus=a30:1 \
+#--output slurm_logs/%x.%A.%a.out \
+#--mem=32G \
+#-n 4 \
+#-t 02-00:00:00 \
+#--array=1-12%12 \
+#predictions.sh
 #####
 
 date
-echo -e "Job ID: $SLURM_JOB_ID\\n"
+echo -e "Job ID: $SLURM_JOB_ID\n"
 
 # Set-up env
 source activate chrombpnet
@@ -45,7 +45,7 @@ echo -e "Peakset: $peak"
 echo -e "Bias model: $bias_model"
 echo -e "Chrombpnet model: $chrombpnet_model"
 echo -e "Chrombpnet nobias model: $chrombpnet_nobias_model"
-echo -e "Output directory: $output_dir\\n"
+echo -e "Output directory: $output_dir\n"
 
 # make the output directory
 mkdir -p $output_dir
@@ -59,7 +59,7 @@ cmd="chrombpnet pred_bw \
 -c {} \
 -r $peak \
 -op $output_dir/$celltype"
-echo -e "Running command:\\n$cmd\\n"
+echo -e "Running command:\n$cmd\n"
 eval $cmd
 
 # Date
