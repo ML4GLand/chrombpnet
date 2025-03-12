@@ -3,18 +3,18 @@
 #####
 # Script to run de novo motif discovery on contributions
 # USAGE: sbatch \
---job-name=motif_discovery \
---partition=carter-compute \
---output=slurm_logs/%x.%A.%a.out \
---array=1-12%12 \
---mem=128G \
--n 4 \
--t 02-00:00:00 \
-motif_discovery.sh
+#--job-name=motif_discovery \
+#--partition=carter-compute \
+#--output=slurm_logs/%x.%A.%a.out \
+#--array=1-12%12 \
+#--mem=128G \
+#-n 4 \
+#-t 02-00:00:00 \
+#motif_discovery.sh
 #####
 
 date
-echo -e "Job ID: $SLURM_JOB_ID\\n"
+echo -e "Job ID: $SLURM_JOB_ID\n"
 
 # Set up environment
 source activate eugene_tools
@@ -61,6 +61,7 @@ echo -e $cmd
 eval $cmd
 
 # Run pfm generation script
+mkdir -p $output_dir/pfms/$type
 path_pfm_script={}
 cmd="python $path_pfm_script \
 -m $output_dir/${{celltype}}.${{type}}.modisco.h5 \
@@ -71,13 +72,22 @@ echo -e $cmd
 eval $cmd
 
 # Consolidate pfms
-(
-  for x in "$output_dir/pfms/$type"/${{celltype}}.${{type}}*.pfm
-  do
-    printf ">%s\\n" "$(basename "$x")"
-    cat "$x"
-  done
-) | sed "s/\//_/" > "$output_dir/pfms/$type/${{celltype}}.${{type}}.pfm"
+temp_file="$output_dir/pfms/$type/${{celltype}}.${{type}}.tmp.pfm"
+final_file="$output_dir/pfms/$type/${{celltype}}.${{type}}.pfm"
+
+# Ensure final file does not exist
+rm -f "$final_file"
+
+# Concatenate files with better formatting
+for x in "$output_dir/pfms/$type"/${{celltype}}.${{type}}*.pfm; do
+  echo ">$(basename "$x")" >> "$temp_file"
+  cat "$x" >> "$temp_file"
+done
+
+# Move to final destination safely
+mv "$temp_file" "$final_file"
+
+echo "Final consolidated PFM file: $final_file"
 
 # Completion message
 date

@@ -3,20 +3,20 @@
 #####
 # Script to run motif hit calling
 # USAGE: sbatch \
---job-name=motif_hits \
---partition=carter-gpu \
---account=carter-gpu \
---gpus=a30:1 \
---output=slurm_logs/%x.%A.%a.out \
---mem=128G \
--n 4 \
--t 02-00:00:00 \
---array=1-12%12 \
-motif_hits.sh
+#--job-name=motif_hits \
+#--partition=carter-gpu \
+#--account=carter-gpu \
+#--gpus=a30:1 \
+#--output=slurm_logs/%x.%A.%a.out \
+#--mem=128G \
+#-n 4 \
+#-t 02-00:00:00 \
+#--array=1-12%12 \
+#motif_hits.sh
 #####
 
 date
-echo -e "Job ID: $SLURM_JOB_ID\\n"
+echo -e "Job ID: $SLURM_JOB_ID\n"
 
 # Configure environment
 source activate finemo_gpu
@@ -47,7 +47,7 @@ cmd="finemo extract-regions-chrombpnet-h5 \
 -c $input_h5 \
 -o $output_dir/${{celltype}}.${{type}}.finemo.npz \
 -w $window"
-echo -e "Running command:\\n$cmd\\n"
+echo -e "Running command:\n$cmd\n"
 eval $cmd
 
 # Run cmd to call hits
@@ -56,7 +56,7 @@ cmd="finemo call-hits \
 -m $modisco \
 -o $output_dir \
 -p $peak"
-echo -e "Running command:\\n$cmd\\n"
+echo -e "Running command:\n$cmd\n"
 eval $cmd
 
 # Run cmd for report
@@ -67,7 +67,7 @@ cmd="finemo report \
 -m $modisco \
 -o $output_dir/report \
 -W $window"
-echo -e "Running command:\\n$cmd\\n"
+echo -e "Running command:\n$cmd\n"
 eval $cmd
 
 # Completion message

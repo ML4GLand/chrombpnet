@@ -3,13 +3,13 @@
 #####
 # Script to compute averaged contributions and profiles across folds
 # USAGE: sbatch \
---job-name=avg_contributions \
---account=carter-compute \
---output=slurm_logs/%x.%A.out \
---mem=128G \
--n 4 \
--t 02-00:00:00 \
-average_contributions.sh
+#--job-name=avg_contributions \
+#--account=carter-compute \
+#--output=slurm_logs/%x.%A.out \
+#--mem=128G \
+#-n 4 \
+#-t 02-00:00:00 \
+#average_contributions.sh
 #####
 
 date
@@ -36,22 +36,39 @@ wigToBigWig={}
 chromsizes={}
 path_script={}
 
-# Compute mean bigwig for counts
-cmd="wiggletools mean ${{counts[@]}} > ${{celltype}}_temp_counts.wig && $wigToBigWig ${{celltype}}_temp_counts.wig $chromsizes $output_dir/${{celltype}}_counts.bw && rm -f ${{celltype}}_temp_counts.wig"
+# Compute mean bigwig for counts. If there are multiple bias predictions, take the mean. Else, just copy the file
+if [ ${{#counts[@]}} -eq 1 ]; then
+    cmd="cp ${{counts[0]}} $output_dir/${{celltype}}_counts.bw"
+else
+    cmd="wiggletools mean ${{counts[@]}} > ${{celltype}}_temp_counts.wig && $wigToBigWig ${{celltype}}_temp_counts.wig $chromsizes $output_dir/${{celltype}}_counts.bw && rm -f ${{celltype}}_temp_counts.wig"
+fi
 echo -e "Running command:\\n$cmd\\n"
 eval $cmd
 
 # Compute mean bigwig for profile
-cmd="wiggletools mean ${{profile[@]}} > ${{celltype}}_temp_profile.wig && $wigToBigWig ${{celltype}}_temp_profile.wig $chromsizes $output_dir/${{celltype}}_profile.bw && rm -f ${{celltype}}_temp_profile.wig"
+if [ ${{#profile[@]}} -eq 1 ]; then
+    cmd="cp ${{profile[0]}} $output_dir/${{celltype}}_profile.bw"
+else
+    cmd="wiggletools mean ${{profile[@]}} > ${{celltype}}_temp_profile.wig && $wigToBigWig ${{celltype}}_temp_profile.wig $chromsizes $output_dir/${{celltype}}_profile.bw && rm -f ${{celltype}}_temp_profile.wig"
+fi
 echo -e "Running command:\\n$cmd\\n"
 eval $cmd
 
-# Compute mean contributions in HDF5 format
-cmd="python $path_script --files ${{counts_h5[@]}} --output_file $output_dir/${{celltype}}_counts.h5 --window ${{window}}"
+# Compute mean contributions in HDF5 format, if there are multiple files, run the script, else just copy the file
+if [ ${{#counts_h5[@]}} -eq 1 ]; then
+    cmd="cp ${{counts_h5[0]}} $output_dir/${{celltype}}_counts.h5"
+else
+    cmd="python $path_script --files ${{counts_h5[@]}} --output_file $output_dir/${{celltype}}_counts.h5 --window $window"
+fi
 echo -e "Running command:\\n$cmd\\n"
 eval $cmd
 
-cmd="python $path_script --files ${{profile_h5[@]}} --output_file $output_dir/${{celltype}}_profile.h5 --window ${{window}}"
+# Compute mean profile in HDF5 format
+if [ ${{#profile_h5[@]}} -eq 1 ]; then
+    cmd="cp ${{profile_h5[0]}} $output_dir/${{celltype}}_profile.h5"
+else
+    cmd="python $path_script --files ${{profile_h5[@]}} --output_file $output_dir/${{celltype}}_profile.h5 --window $window"
+fi
 echo -e "Running command:\\n$cmd\\n"
 eval $cmd
 

@@ -1,0 +1,62 @@
+#! /bin/bash
+
+#####
+# Script to get variant scores with a trained chrombpnet model
+# USAGE: sbatch \
+#--job-name=variant_scoring \
+#--account carter-gpu \
+#--partition carter-gpu \
+#--gpus=a30:1 \
+#--output slurm_logs/%x.%A.%a.out \
+#--mem=32G \
+#-n 4 \
+#-t 02-00:00:00 \
+#--array=1-12%12 \
+#variant_scoring.sh
+#####
+
+date
+echo -e "Job ID: $SLURM_JOB_ID\n"
+
+# Set-up env
+source activate chrombpnet
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/cellar/users/aklie/opt/miniconda3/envs/chrombpnet/lib
+python -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
+
+# file lists
+{}
+{}
+{}
+list={}
+random_seed={}
+
+# Grab each for this SLURM task
+celltype=${{celltypes[$SLURM_ARRAY_TASK_ID - 1]}}
+chrombpnet_nobias_model=${{chrombpnet_nobias_models[$SLURM_ARRAY_TASK_ID - 1]}}
+output_dir=${{output_dirs[$SLURM_ARRAY_TASK_ID - 1]}}
+
+# echo the celltype and peak
+echo -e "Celltype: $celltype"
+echo -e "Model path: $chrombpnet_nobias_model"
+echo -e "Output directory: $output_dir\n"
+echo -e "Variant list: $list"
+echo -e "Random seed: $random_seed\n"
+
+# make the output directory
+mkdir -p $output_dir
+
+# Run cmd
+variant_scoring_script={}
+cmd="python $variant_scoring_script \
+-l $list \
+-g {} \
+-m $chrombpnet_nobias_model \
+-o $output_dir/${{celltype}} \
+-s {} \
+-r $random_seed \
+-sc bed"
+echo -e "Running command:\n$cmd\n"
+eval $cmd
+
+# Date
+date
