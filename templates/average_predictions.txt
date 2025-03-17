@@ -63,6 +63,7 @@ if [ ${{#chrombpnet_preds[@]}} -eq 1 ]; then
     cmd="cp ${{chrombpnet_preds[0]}} $output_dir/${{celltype}}_chrombpnet.bw"
 else
     cmd="wiggletools mean ${{chrombpnet_preds[@]}} > ${{celltype}}_temp_chrombpnet.wig && $wigToBigWig ${{celltype}}_temp_chrombpnet.wig $chromsizes $output_dir/${{celltype}}_chrombpnet.bw && rm -f ${{celltype}}_temp_chrombpnet.wig"
+fi
 echo -e "Running command:\n$cmd\n"
 eval $cmd
 
