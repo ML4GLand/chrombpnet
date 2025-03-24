@@ -70,7 +70,7 @@ $path_motif_database > $path_out/tomtom/${{meme_id}}.tomtom.txt"
 done
 
 #
-for x in $path_out/tomtom/*.tomtom.txt ; do cat $x | head -2 | tail -1 ; done | cut -f1,2,5 | sort -k3g | cut -f1,2 > $path_out/tfs_initial.txt
+for x in $path_out/tomtom/*.tomtom.txt ; do cat $x | head -2 | tail -1 ; done | cut -f1,2,5 | sort -k3g > $path_out/tfs_initial.txt
 
 # Completion message
 date
