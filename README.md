@@ -240,18 +240,6 @@ echo -e "Running command:\n$cmd"
 eval $cmd
 ```
 
-
-## 10. Motif annotation and filtering
-It is often a good idea to inspect the results of motif clustering and annotation. 
-
-1. TomTom match filtering
-2. Information content filtering
-3. Redundant cluster filtering
-
-
-
-
-
 ## 10. Motif hit calling
 
 

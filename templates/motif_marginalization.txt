@@ -1,0 +1,60 @@
+#!/bin/bash
+
+#####
+# Script to run marginalization analysis with chromBPNet models
+# USAGE:
+# sbatch \
+# --job-name=marginalize \
+# --account carter-gpu \
+# --partition carter-gpu \
+# --gpus=a30:1 \
+# --output slurm_logs/%x.%A.%a.out \
+# --mem=32G \
+# -n 4 \
+# -t 02-00:00:00 \
+# --array=1-20%10 \
+# marginalize.sh
+#####
+
+date
+echo -e "Job ID: $SLURM_JOB_ID\n"
+
+# Set-up env
+source activate eugene_tools
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/cellar/users/aklie/opt/miniconda3/envs/chrombpnet/lib
+python -c "import torch; print(torch.cuda.is_available())"
+
+# File arrays
+{}
+{}
+{}
+n_seqs={}
+
+# SLURM task-specific values
+model=${{models[$SLURM_ARRAY_TASK_ID - 1]}}
+peak=${{peaks[$SLURM_ARRAY_TASK_ID - 1]}}
+output_dir=${{output_dirs[$SLURM_ARRAY_TASK_ID - 1]}}
+
+# Constants
+genome_fasta="{}"
+motif_file="{}"
+
+echo -e "Model: $model"
+echo -e "Peaks: $peak"
+echo -e "Output: $output_dir\n"
+
+mkdir -p $output_dir
+
+# Run marginalization
+cmd="python {} \
+  -m $model \
+  -f $motif_file \
+  -g $genome_fasta \
+  -p $peak \
+  -o $output_dir \
+  -n $n_seqs"
+
+echo -e "Running command:\n$cmd\n"
+eval $cmd
+
+date
